@@ -25,6 +25,26 @@ services:
     environment:
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/membership_db?schema=users
       JWT_SECRET: appUsuariosTienda
+  routine-service:
+    build: ./Routine_Service
+    container_name: routine_service
+    restart: always
+    ports:
+      - "4002:4002"
+    depends_on:
+      - postgres
+    environment:
+      DB_TYPE: postgres
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: membership_db
+      # Indica el esquema que debe usar Routine_Service en Postgres
+      DB_SCHEMA: routines
+      # development mode will let TypeORM synchronize the schema automatically;
+      # change to 'production' and manage migrations for production deployments
+      NODE_ENV: development
     
 volumes:
   postgres_data:
