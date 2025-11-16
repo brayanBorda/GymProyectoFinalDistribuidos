@@ -10,6 +10,9 @@ dotenv.config();
 const DB_TYPE = (process.env.DB_TYPE || 'postgres').toLowerCase();
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Esquema a usar en Postgres. Si no se define, TypeORM usará el esquema por defecto (public).
+const DB_SCHEMA = process.env.DB_SCHEMA || undefined;
+
 function parsePort(p: string | undefined, defaultPort: number) {
   if (!p) return defaultPort;
   const n = Number(p);
@@ -23,6 +26,8 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER || (DB_TYPE === 'postgres' ? 'postgres' : 'root'),
   password: process.env.DB_PASSWORD || (DB_TYPE === 'postgres' ? 'postgres' : 'root'),
   database: process.env.DB_NAME || 'gym_routines',
+  // Si DB_SCHEMA está definida, la pasamos para que TypeORM use ese esquema por defecto.
+  schema: DB_SCHEMA,
   synchronize: !isProduction, // sincroniza en desarrollo, usa migrations en producción
   logging: false,
   entities: [Routine, Exercise, RoutineExercise],

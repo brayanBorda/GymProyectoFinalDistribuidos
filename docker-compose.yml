@@ -40,6 +40,8 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: membership_db
+      # Indica el esquema que debe usar Routine_Service en Postgres
+      DB_SCHEMA: routines
       # development mode will let TypeORM synchronize the schema automatically;
       # change to 'production' and manage migrations for production deployments
       NODE_ENV: development
