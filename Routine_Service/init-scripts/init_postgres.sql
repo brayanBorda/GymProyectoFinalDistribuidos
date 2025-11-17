@@ -1,8 +1,10 @@
 -- init_postgres.sql
 -- Script para inicializar la base de datos PostgreSQL para routine_service
+-- Ensure the 'routines' schema exists and use it as search_path so tables are created inside it
+CREATE SCHEMA IF NOT EXISTS routines;
+SET search_path TO routines;
 
--- Crear esquema básico, tablas y constraints compatibles con el modelo relacional
-
+-- Crear tablas dentro del esquema `routines`
 CREATE TABLE IF NOT EXISTS exercises (
   exercise_id SERIAL PRIMARY KEY,
   exercise_name VARCHAR(100) NOT NULL,

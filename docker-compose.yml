@@ -13,6 +13,9 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # Init scripts folder: all .sql files here will be executed by the official Postgres image
+      # the first time the volume is initialized
+      - ./Routine_Service/init-scripts/:/docker-entrypoint-initdb.d/:ro
 
   user-service:
     build: ./user-service
