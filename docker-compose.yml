@@ -68,6 +68,29 @@ services:
       - sh
       - -c
       - npx prisma migrate deploy --schema=prisma/schema.prisma && npm run start
+
+  # NGINX - Balanceador de Carga y Proxy Reverso
+  nginx:
+    build: ./nginx
+    container_name: nginx_load_balancer
+    restart: always
+    ports:
+      # Mapear puerto 80 del host al puerto 80 del contenedor
+      - "80:80"
+    depends_on:
+      # Nginx depende de que todos los microservicios estén corriendo
+      - user-service
+      - membership-service
+      - routine-service
+    networks:
+      - default
+    # Configurar health check para verificar que Nginx esté funcionando
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/load-balancer/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     
 volumes:
   postgres_data:
