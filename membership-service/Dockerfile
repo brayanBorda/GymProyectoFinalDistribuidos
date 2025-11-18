@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine AS builder
+FROM node:18-bullseye AS builder
 
 # Set working directory
 WORKDIR /app
@@ -9,27 +9,30 @@ COPY package*.json ./
 COPY tsconfig.json ./
 
 # Install dependencies
-RUN npm ci
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates \ 
+    && rm -rf /var/lib/apt/lists/* \
+    && npm ci
 
 # Copy source code
 COPY src/ ./src/
-COPY prisma/ ./prisma/
+# The Prisma schema in this repo lives under src/infrastructure/database/prisma
+COPY src/infrastructure/database/prisma ./prisma/
 
-# Generate Prisma client
-RUN npx prisma generate
+# Generate Prisma client (point to the copied schema path)
+RUN npx prisma generate --schema=prisma/schema.prisma
 
 # Build the application
 RUN npm run build
 
 # Production stage
-FROM node:18-alpine AS production
+FROM node:18-bullseye AS production
 
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
+# Install dumb-init and OpenSSL for Prisma runtime compatibility
+RUN apt-get update && apt-get install -y --no-install-recommends dumb-init openssl ca-certificates \ 
+    && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+RUN groupadd -g 1001 nodejs || true && useradd -u 1001 -r -g nodejs nodejs || true
 
 # Set working directory
 WORKDIR /app

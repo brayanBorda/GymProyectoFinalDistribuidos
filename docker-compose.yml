@@ -49,5 +49,25 @@ services:
       # change to 'production' and manage migrations for production deployments
       NODE_ENV: development
     
+  membership-service:
+    build: ./membership-service
+    container_name: membership_service
+    restart: always
+    ports:
+      # Mapear el puerto del host 3002 al puerto interno 3002 donde la app escucha
+      - "3002:3002"
+    depends_on:
+      - postgres
+    environment:
+      # Prisma will target the 'memberships' schema via the URL param
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/membership_db?schema=memberships
+      NODE_ENV: development
+    # Run migrations non-interactively at container start, then start the app
+    # Use the prisma path that is copied into the image (/app/prisma)
+    command:
+      - sh
+      - -c
+      - npx prisma migrate deploy --schema=prisma/schema.prisma && npm run start
+    
 volumes:
   postgres_data:
