@@ -133,10 +133,15 @@ docker-compose down -v
 docker-compose up -d
 npm run prisma:migrate
 ```
+# REINICIO DESDE 0 DE CONTENEDORES Y CONFIGURACIONES 
+- docker-compose down
+- docker-compose build --no-cache
+- docker-compose up -d
 
 # IMPORTANTE CAMBIAR DE ESQUEMA EN LA BASE DE DATOS
 - public: SET search_path TO public;
 - users: SET search_path TO users;
+- visualizar esquemas disponibles en la bd: SELECT schema_name FROM information_schema.schemata;
 
 ## 📡 API Endpoints
 

@@ -10,6 +10,7 @@ interface AuthenticatedRequest extends Request {
 }
 
 export const authenticate = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  console.log('🔐 Middleware ejecutado. Ruta:', req.originalUrl);
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Token requerido' });
 
@@ -25,7 +26,8 @@ export const authenticate = (req: AuthenticatedRequest, res: Response, next: Nex
 
     req.user = decoded;
     next();
-  } catch {
+  } catch (error) {
+    console.error('Error verifying token:', error);
     res.status(403).json({ error: 'Token inválido' });
   }
 };
