@@ -728,7 +728,7 @@ El microservicio de usuarios expone los siguientes endpoints:
 - devuelve el perfil del usuario autenticado y requiere el encabezado `Authorization: Bearer <token>`; 
 # `POST /api/users/logout` 
 - cierra la sesión (respuesta simbólica, sin autenticación); 
-# `GET /api/users/users` 
+# `GET /api/users` 
 - devuelve la lista de todos los usuarios y requiere token JWT en el encabezado; 
-# `GET /api/users/users/:id` 
+# `GET /api/users/:id` 
 - devuelve los datos de un usuario específico por su ID, también protegido con token. Todos los endpoints protegidos deben incluir el token JWT en el encabezado `Authorization` con el formato `Bearer <token>`.
