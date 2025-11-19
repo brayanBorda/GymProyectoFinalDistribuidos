@@ -17,6 +17,7 @@ services:
       # the first time the volume is initialized
       - ./Routine_Service/init-scripts/:/docker-entrypoint-initdb.d/:ro
 
+  # PRIMERA INSTANCIA - User Service
   user-service:
     build: ./user-service
     container_name: user_service
@@ -29,6 +30,22 @@ services:
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/membership_db?schema=users
       JWT_SECRET: appUsuariosTienda
       SERVICE_API_KEY: alex
+
+  # SEGUNDA INSTANCIA - User Service (Réplica para balanceo de carga)
+  user-service-2:
+    build: ./user-service
+    container_name: user_service_2
+    restart: always
+    ports:
+      - "3004:3003"  # Puerto diferente en el host para evitar conflictos
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/membership_db?schema=users
+      JWT_SECRET: appUsuariosTienda
+      SERVICE_API_KEY: alex
+
+  # PRIMERA INSTANCIA - Routine Service
   routine-service:
     build: ./Routine_Service
     container_name: routine_service
@@ -49,7 +66,30 @@ services:
       # development mode will let TypeORM synchronize the schema automatically;
       # change to 'production' and manage migrations for production deployments
       NODE_ENV: development
+
+  # SEGUNDA INSTANCIA - Routine Service (Réplica para balanceo de carga)
+  routine-service-2:
+    build: ./Routine_Service
+    container_name: routine_service_2
+    restart: always
+    ports:
+      - "4003:4002"  # Puerto diferente en el host para evitar conflictos
+    depends_on:
+      - postgres
+    environment:
+      DB_TYPE: postgres
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: membership_db
+      # Indica el esquema que debe usar Routine_Service en Postgres
+      DB_SCHEMA: routines
+      # development mode will let TypeORM synchronize the schema automatically;
+      # change to 'production' and manage migrations for production deployments
+      NODE_ENV: development
     
+  # PRIMERA INSTANCIA - Membership Service
   membership-service:
     build: ./membership-service
     container_name: membership_service
@@ -71,6 +111,31 @@ services:
       - -c
       - sleep 10 && npx prisma migrate deploy --schema=prisma/schema.prisma && npm run start
 
+  # SEGUNDA INSTANCIA - Membership Service (Réplica para balanceo de carga)
+  membership-service-2:
+    build: ./membership-service
+    container_name: membership_service_2
+    restart: always
+    ports:
+      # Puerto diferente en el host para evitar conflictos
+      - "3005:3002"
+    depends_on:
+      - postgres
+    environment:
+      # Prisma will target the 'memberships' schema via the URL param
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/membership_db?schema=memberships
+      NODE_ENV: development
+      # CORRECCIÓN: URL para comunicarse con el servicio de Usuarios
+      USER_SERVICE_URL: http://user-service:3003
+      # Si tienes un API_KEY en el UserService, debe ir aquí:
+      API_KEY: alex
+    # Run migrations non-interactively at container start, then start the app
+    # Use the prisma path that is copied into the image (/app/prisma)
+    command:
+      - sh
+      - -c
+      - sleep 10 && npx prisma migrate deploy --schema=prisma/schema.prisma && npm run start
+
   # NGINX - Balanceador de Carga y Proxy Reverso
   nginx:
     build: ./nginx
@@ -80,10 +145,13 @@ services:
       # Mapear puerto 80 del host al puerto 80 del contenedor
       - "80:80"
     depends_on:
-      # Nginx depende de que todos los microservicios estén corriendo
+      # Nginx depende de que todos los microservicios estén corriendo (incluyendo réplicas)
       - user-service
+      - user-service-2
       - membership-service
+      - membership-service-2
       - routine-service
+      - routine-service-2
     networks:
       - default
     # Configurar health check para verificar que Nginx esté funcionando
