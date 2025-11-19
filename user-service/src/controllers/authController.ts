@@ -94,3 +94,37 @@ export const getAllUsers = async (req: Request, res: Response) => {
   }
 };
 
+export const getUserById = async (req: Request, res: Response) => {
+  const id = req.params.id;
+
+  if (!id) {
+    return res.status(400).json({ error: 'ID no proporcionado' });
+  }
+
+  const userId = parseInt(id, 10);
+  if (isNaN(userId)) {
+    return res.status(400).json({ error: 'ID inválido' });
+  }
+
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Error al buscar usuario:', error);
+    res.status(500).json({ error: 'Error al buscar usuario' });
+  }
+};
