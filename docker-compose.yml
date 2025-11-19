@@ -28,6 +28,7 @@ services:
     environment:
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/membership_db?schema=users
       JWT_SECRET: appUsuariosTienda
+      SERVICE_API_KEY: alex
   routine-service:
     build: ./Routine_Service
     container_name: routine_service
@@ -52,22 +53,23 @@ services:
   membership-service:
     build: ./membership-service
     container_name: membership_service
-    restart: always
+    restart: on-failure
     ports:
-      # Mapear el puerto del host 3002 al puerto interno 3002 donde la app escucha
       - "3002:3002"
     depends_on:
       - postgres
     environment:
-      # Prisma will target the 'memberships' schema via the URL param
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/membership_db?schema=memberships
       NODE_ENV: development
-    # Run migrations non-interactively at container start, then start the app
-    # Use the prisma path that is copied into the image (/app/prisma)
+      # CORRECCIÓN 1: URL para comunicarse con el servicio de Usuarios
+      USER_SERVICE_URL: http://user-service:3003
+      # Si tienes un API_KEY en el UserService, debe ir aquí:
+      API_KEY: alex
+    
     command:
       - sh
       - -c
-      - npx prisma migrate deploy --schema=prisma/schema.prisma && npm run start
+      - sleep 10 && npx prisma migrate deploy --schema=prisma/schema.prisma && npm run start
 
   # NGINX - Balanceador de Carga y Proxy Reverso
   nginx:
