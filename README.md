@@ -715,3 +715,20 @@ MIT
 ## 👥 Autor
 
 Gym Management System Team
+
+
+## MICROSERVICIO DE USUARIOS
+
+El microservicio de usuarios expone los siguientes endpoints: 
+# `POST /api/users/register` 
+- permite registrar un nuevo usuario enviando `name`, `email`, `password` y `role` en el cuerpo de la solicitud (sin autenticación); 
+# `POST /api/users/login` 
+- permite autenticar al usuario y obtener un token JWT usando `email` y `password`; 
+# `GET /api/users/profile` 
+- devuelve el perfil del usuario autenticado y requiere el encabezado `Authorization: Bearer <token>`; 
+# `POST /api/users/logout` 
+- cierra la sesión (respuesta simbólica, sin autenticación); 
+# `GET /api/users/users` 
+- devuelve la lista de todos los usuarios y requiere token JWT en el encabezado; 
+# `GET /api/users/users/:id` 
+- devuelve los datos de un usuario específico por su ID, también protegido con token. Todos los endpoints protegidos deben incluir el token JWT en el encabezado `Authorization` con el formato `Bearer <token>`.
