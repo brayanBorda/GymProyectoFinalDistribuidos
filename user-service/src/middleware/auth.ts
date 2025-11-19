@@ -17,7 +17,7 @@ const isServiceCall = (req: Request): boolean => {
 };
 
 export const authenticate = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  console.log('🔐 Middleware ejecutado. Ruta:', req.originalUrl);
+  console.log('Middleware ejecutado. Ruta:', req.originalUrl);
   // Permitir llamadas internas de servicios sin autenticación
   if (isServiceCall(req)) {
     console.log('Acceso concedido: Llamada de servicio interna (X-API-Key válida)');

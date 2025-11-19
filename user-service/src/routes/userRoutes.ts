@@ -8,6 +8,7 @@ router.post('/register', register);
 router.post('/login', login);
 router.get('/profile', authenticate, profile);
 router.post('/logout', logout);
+
 router.get('/',  authenticate,getAllUsers);
 router.get('/:id', authenticate,getUserById);
 
