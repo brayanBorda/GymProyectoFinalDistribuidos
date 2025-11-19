@@ -47,7 +47,8 @@ export const login = async (req: Request, res: Response) => {
     process.env.JWT_SECRET,
     { expiresIn: '1d' }
   );
-
+console.log("lista de usuariossss");
+  console.log(getAllUsers);
   res.json({ token });
 };
 
@@ -74,4 +75,56 @@ export const profile = async (req: AuthenticatedRequest, res: Response) => {
 
 export const logout = (req: Request, res: Response) => {
   res.json({ message: 'Sesión cerrada' });
+};
+
+export const getAllUsers = async (req: Request, res: Response) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
+    });
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Error al obtener usuarios' });
+  }
+};
+
+export const getUserById = async (req: Request, res: Response) => {
+  const id = req.params.id;
+
+  if (!id) {
+    return res.status(400).json({ error: 'ID no proporcionado' });
+  }
+
+  const userId = parseInt(id, 10);
+  if (isNaN(userId)) {
+    return res.status(400).json({ error: 'ID inválido' });
+  }
+
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Error al buscar usuario:', error);
+    res.status(500).json({ error: 'Error al buscar usuario' });
+  }
 };

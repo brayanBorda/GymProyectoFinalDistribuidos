@@ -9,7 +9,20 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
+// Función auxiliar para verificar si la petición es de un servicio interno
+const isServiceCall = (req: Request): boolean => {
+    const serviceKey = req.headers['x-api-key'];
+    // Compara la clave de la petición (API_KEY) con la clave secreta del entorno (SERVICE_API_KEY)
+    return !!serviceKey && serviceKey === process.env.SERVICE_API_KEY;
+};
+
 export const authenticate = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  console.log('🔐 Middleware ejecutado. Ruta:', req.originalUrl);
+  // Permitir llamadas internas de servicios sin autenticación
+  if (isServiceCall(req)) {
+    console.log('Acceso concedido: Llamada de servicio interna (X-API-Key válida)');
+    return next();
+  }
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Token requerido' });
 
@@ -25,7 +38,8 @@ export const authenticate = (req: AuthenticatedRequest, res: Response, next: Nex
 
     req.user = decoded;
     next();
-  } catch {
+  } catch (error) {
+    console.error('Error verifying token:', error);
     res.status(403).json({ error: 'Token inválido' });
   }
 };
